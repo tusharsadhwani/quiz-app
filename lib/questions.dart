@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import './providers/question_counter.dart';
 import './widgets/questions/question_card.dart';
 
-class Questions extends StatelessWidget {
-  final int totalTime = 10;
-  final List<Map<String, dynamic>> questions = [
+class Questions extends StatefulWidget {
+  @override
+  _QuestionsState createState() => _QuestionsState();
+}
+
+class _QuestionsState extends State<Questions> {
+  final int _totalTimePerQuestion = 10;
+
+  final List<Map<String, dynamic>> _questions = [
     {
       "title": "1. Meaning",
       "question": "What is the meaning of Life?",
@@ -30,12 +38,15 @@ class Questions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: ListView.builder(
-        itemCount: questions.length,
-        itemBuilder: (ctx, index) =>
-            QuestionCard(index, questions[index], totalTime),
+    return ChangeNotifierProvider.value(
+      value: QuestionCounter(totalQuestions: _questions.length),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: ListView.builder(
+          itemCount: _questions.length,
+          itemBuilder: (ctx, index) =>
+              QuestionCard(index, _questions[index], _totalTimePerQuestion),
+        ),
       ),
     );
   }

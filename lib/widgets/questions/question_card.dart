@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../providers/question_counter.dart';
+import '../../providers/question_card_state.dart';
 
 class QuestionCard extends StatefulWidget {
   final int index;
@@ -13,12 +17,18 @@ class QuestionCard extends StatefulWidget {
 
 class _QuestionCardState extends State<QuestionCard>
     with SingleTickerProviderStateMixin {
+  var _questionCardState = QuestionCardState();
+
   AnimationController _timeController;
   Animation<double> _timeLeft;
 
   @override
   void initState() {
     super.initState();
+
+    print('Card ${widget.index}');
+    print('State: ${_questionCardState.state}');
+    print('--------------------');
 
     _timeController = AnimationController(
       vsync: this,
@@ -33,7 +43,6 @@ class _QuestionCardState extends State<QuestionCard>
         curve: Curves.linear,
       ),
     );
-    _timeController.forward();
   }
 
   @override
@@ -44,34 +53,50 @@ class _QuestionCardState extends State<QuestionCard>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5),
-      width: double.infinity,
-      child: Card(
-        elevation: 3,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                height: 45,
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Text(
-                          widget.questionData['title'],
-                          style: TextStyle(
-                            fontSize: 24,
+    if (_timeController.status == AnimationStatus.forward &&
+        _questionCardState.state == QuestionCardStates.Completed) {
+      _timeController.stop();
+    }
+    if (_questionCardState.state != QuestionCardStates.Running &&
+        Provider.of<QuestionCounter>(context).currentQuestion == widget.index) {
+      setState(() {
+        _questionCardState.setQuestionCardState(QuestionCardStates.Running);
+        _timeController.forward();
+        print('New Card ${widget.index}');
+        print('New State: ${_questionCardState.state}');
+        print('--------------------');
+      });
+    }
+
+    return ChangeNotifierProvider.value(
+      value: _questionCardState,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 5),
+        width: double.infinity,
+        child: Card(
+          elevation: 3,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  height: 45,
+                  child: Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Text(
+                            widget.questionData['title'],
+                            style: TextStyle(
+                              fontSize: 24,
+                            ),
+                            overflow: TextOverflow.fade,
+                            softWrap: false,
                           ),
-                          overflow: TextOverflow.fade,
-                          softWrap: false,
                         ),
                       ),
-                    ),
-                    if (widget.index == 0)
                       AnimatedBuilder(
                         animation: _timeLeft,
                         builder: (_, __) => Padding(
@@ -81,39 +106,39 @@ class _QuestionCardState extends State<QuestionCard>
                           ),
                         ),
                       ),
-                    if (widget.index != 0)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 4, 4, 4),
-                        child: CircularProgressIndicator(
-                          value: _timeLeft.value,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              Container(
-                constraints: BoxConstraints(
-                  minHeight: 100,
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Text(
-                  widget.questionData['question'],
-                  style: TextStyle(
-                    fontSize: 18,
+                    ],
                   ),
                 ),
-              ),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: (widget.questionData['answers'] as List<String>)
-                      .map(
-                        (answer) => AnswerButton(answer),
-                      )
-                      .toList(),
+                Container(
+                  constraints: BoxConstraints(
+                    minHeight: 100,
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Column(
+                    children: <Widget>[
+                      if (_questionCardState.state ==
+                          QuestionCardStates.Running)
+                        Text(
+                          widget.questionData['question'],
+                          style: TextStyle(
+                            fontSize: 18,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: (widget.questionData['answers'] as List<String>)
+                        .map(
+                          (answer) => AnswerButton(answer),
+                        )
+                        .toList(),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -131,15 +156,18 @@ class AnswerButton extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
       child: OutlineButton(
-        child: Text(
-          text,
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        shape: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        onPressed: () {},
-      ),
+          child: Text(
+            text,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          shape: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          onPressed: () {
+            Provider.of<QuestionCardState>(context)
+                .setQuestionCardState(QuestionCardStates.Completed);
+            Provider.of<QuestionCounter>(context).incrementCounter();
+          }),
     );
   }
 }
