@@ -2,17 +2,9 @@ import 'package:flutter/material.dart';
 
 import './widgets/questions/question_card.dart';
 
-class Questions extends StatefulWidget {
-  @override
-  _QuestionsState createState() => _QuestionsState();
-}
-
-class _QuestionsState extends State<Questions>
-    with SingleTickerProviderStateMixin {
-  AnimationController _timeController;
-  Animation<double> _timeLeft;
-
-  static const List<Map<String, dynamic>> questions = [
+class Questions extends StatelessWidget {
+  final int totalTime = 10;
+  final List<Map<String, dynamic>> questions = [
     {
       "title": "1. Meaning",
       "question": "What is the meaning of Life?",
@@ -37,38 +29,13 @@ class _QuestionsState extends State<Questions>
   ];
 
   @override
-  void initState() {
-    super.initState();
-
-    _timeController = AnimationController(
-      vsync: this,
-      duration: Duration(
-        seconds: 10,
-      ),
-    );
-
-    _timeLeft = Tween<double>(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(
-        parent: _timeController,
-        curve: Curves.linear,
-      ),
-    );
-    _timeController.forward();
-  }
-
-  @override
-  void dispose() {
-    _timeController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: ListView.builder(
         itemCount: questions.length,
-        itemBuilder: (ctx, index) => QuestionCard(questions[index], _timeLeft),
+        itemBuilder: (ctx, index) =>
+            QuestionCard(index, questions[index], totalTime),
       ),
     );
   }
