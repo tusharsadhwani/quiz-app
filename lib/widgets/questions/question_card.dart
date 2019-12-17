@@ -17,11 +17,14 @@ class QuestionCard extends StatefulWidget {
 }
 
 class _QuestionCardState extends State<QuestionCard>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   var _questionCardState = CardStates.Pending;
 
   AnimationController _timeController;
   Animation<double> _timeLeft;
+
+  final _animationDuration = Duration(milliseconds: 300);
+  final _contentMinHeight = 100.0;
 
   @override
   void initState() {
@@ -100,46 +103,79 @@ class _QuestionCardState extends State<QuestionCard>
                         ),
                       ),
                     ),
-                    AnimatedBuilder(
-                      animation: _timeLeft,
-                      builder: (_, __) => Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 4, 4, 4),
-                        child: CircularProgressIndicator(
-                          value: _timeLeft.value,
+                    AnimatedContainer(
+                      duration: _animationDuration,
+                      foregroundDecoration: BoxDecoration(
+                        color: _questionCardState == CardStates.Running
+                            ? Colors.white.withOpacity(0.0)
+                            : Colors.white,
+                      ),
+                      child: AnimatedBuilder(
+                        animation: _timeLeft,
+                        builder: (_, __) => Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 4, 4, 4),
+                          child: CircularProgressIndicator(
+                            value: _timeLeft.value,
+                          ),
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
-              Container(
-                constraints: BoxConstraints(
-                  minHeight: 100,
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Column(
-                  children: <Widget>[
-                    if (_questionCardState == CardStates.Running)
-                      Text(
-                        widget.questionData['question'],
-                        style: TextStyle(
-                          fontSize: 18,
+              AnimatedSize(
+                duration: _animationDuration,
+                vsync: this,
+                child: Container(
+                  width: double.infinity,
+                  alignment: Alignment.topLeft,
+                  constraints: _questionCardState == CardStates.Running
+                      ? BoxConstraints(
+                          minHeight: 100.0, maxHeight: double.infinity)
+                      : BoxConstraints(minHeight: 0.0, maxHeight: 0.0),
+                  child: SingleChildScrollView(
+                    physics: NeverScrollableScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          constraints: BoxConstraints(
+                            minHeight: _contentMinHeight,
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              if (_questionCardState == CardStates.Running)
+                                Container(
+                                  child: Text(
+                                    widget.questionData['question'],
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
-                  ],
-                ),
-              ),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: (widget.questionData['answers'] as List<String>)
-                      .map(
-                        (answer) => AnswerButton(
-                          answer,
-                          _setQuestionCardState,
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children:
+                                (widget.questionData['answers'] as List<String>)
+                                    .map(
+                                      (answer) => AnswerButton(
+                                        answer,
+                                        _setQuestionCardState,
+                                      ),
+                                    )
+                                    .toList(),
+                          ),
                         ),
-                      )
-                      .toList(),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],
