@@ -41,6 +41,14 @@ class _QuestionCardState extends State<QuestionCard>
       ),
     );
 
+    _timeController.addStatusListener((animationStatus) {
+      if (animationStatus == AnimationStatus.completed &&
+          _questionCardState != CardStates.Completed) {
+        _setQuestionCardState(CardStates.Completed);
+        Provider.of<QuestionCounter>(context).incrementCounter();
+      }
+    });
+
     _timeLeft = Tween<double>(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _timeController,
@@ -53,6 +61,12 @@ class _QuestionCardState extends State<QuestionCard>
   void dispose() {
     _timeController.dispose();
     super.dispose();
+  }
+
+  void _setQuestionCardState(CardStates newState) {
+    setState(() {
+      _questionCardState = newState;
+    });
   }
 
   @override
@@ -70,10 +84,6 @@ class _QuestionCardState extends State<QuestionCard>
         print('New State: $_questionCardState');
         print('--------------------');
       });
-    }
-
-    void _setQuestionCardState(CardStates newState) {
-      _questionCardState = newState;
     }
 
     return Container(
