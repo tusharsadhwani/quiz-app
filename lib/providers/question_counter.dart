@@ -14,7 +14,7 @@ class QuestionCounter with ChangeNotifier {
   }
 
   void incrementCounter() {
-    if (_currentQuestion < _totalQuestions - 1) {
+    if (_currentQuestion < _totalQuestions) {
       _currentQuestion++;
       print("Counter is now $_currentQuestion");
       notifyListeners();
