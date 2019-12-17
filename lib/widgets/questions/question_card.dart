@@ -125,6 +125,7 @@ class _QuestionCardState extends State<QuestionCard>
               ),
               AnimatedSize(
                 duration: _animationDuration,
+                curve: Curves.easeOut,
                 vsync: this,
                 child: Container(
                   width: double.infinity,
